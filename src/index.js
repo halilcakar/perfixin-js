@@ -2,64 +2,89 @@ let timer;
 
 const timeToFirstByte = () => performance.timing.responseStart - performance.timing.navigationStart;
 
-const firstContentfulPaint = () => {
-  const [time] = performance.getEntriesByName("first-contentful-paint")
-  return time && time.startTime || 0
-}
-
 const domContentLoaded = () => performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart
 
 const windowLoad = (time) => time - performance.timing.navigationStart
 
-const fromAssets = (t, n) => {
-  const e = performance.getEntriesByType("resource");
-  let i = 0, o = Number.MAX_VALUE, a = 0;
-  return e.forEach(e => {
-    (e.initiatorType === t || n && (t => t && t.split("?")[0].endsWith(`.${n}`))(e.name)) && (o > e.startTime && 0 !== e.startTime && (o = e.startTime), a < e.responseEnd && (a = e.responseEnd))
-  }), o === Number.MAX_VALUE || 0 === a ? i = 0 : i += a - o, i
+const firstContentfulPaint = () => {
+  const [time] = performance.getEntriesByName("first-contentful-paint")
+  return (time && time.startTime) || 0
 }
 
+const document = () => {
+  const time = performance.getEntries().find(ch => ch.initiatorType === 'navigation')
+  return time && (time.responseEnd - time.requestStart) || 0
+}
+
+const calculateTime = (entries) => {
+  let result = 0, start = Number.MAX_VALUE, end = 0;
+  entries.forEach(entry => {
+    if (end < entry.responseEnd) {
+      end = entry.responseEnd;
+    }
+    if (start > entry.startTime && entry.startTime !== 0) {
+      start = entry.startTime
+    }
+  })
+  return (result = end - start) > 0 ? result : 0
+}
+
+const image = () => calculateTime(performance.getEntriesByType("resource").filter(ch => ch.initiatorType === 'img'))
+
+const asset = (type) => calculateTime(performance.getEntriesByType("resource").filter(child => child.name.split('?')[0].endsWith(`.${type}`)))
+
 const getMetrics = (time) => ({
-  ttfb: timeToFirstByte(),
-  fcp: firstContentfulPaint(),
-  dcl: domContentLoaded(),
+  timeToFirstByte: timeToFirstByte(),
+  firstContentfulPaint: firstContentfulPaint(),
+  domContentLoaded: domContentLoaded(),
   windowLoad: windowLoad(time),
-  script: fromAssets(null, "js"),
-  image: fromAssets('img'),
-  css: fromAssets(null, "css"),
-  font: fromAssets(null, 'woff') + fromAssets(null, 'woff2'),
-  document: fromAssets('xmlhttprequest')
+  image: image(),
+  document: document(),
+  script: asset("js"),
+  css: asset("css"),
+  font: asset('woff') + asset('woff2'),
 })
 
 const post = (url, data) => {
-  console.log(url)
-  console.log(data)
-  // fetch(url, { method: "POST", cache: "no-cache", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+  if (!url) {
+    console.log('Perfixin debugging..');
+    return console.log(data);
+  }
+  
+  fetch(url, {
+    method: "POST",
+    cache: "no-cache",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
   clearTimeout(timer)
 }
 
-export default () => {
-  if (!url) {
-    throw new Error('Perfixin requires a URL to send the metrics..')
-  }
+/**
+ * @function Perfixin
+ * 
+ * @param url - when not provided, we will just console the metrics that we found.
+ */
+export default (url) => {
   if (!window) {
     throw new Error('Cannot get metrics without window =)')
   }
   if (!performance && !performance.timing) {
-    throw new Error('Browser is not compatible with this..')
+    throw new Error('Browser is not compatible with Perfixin..')
   }
 
-  if (performance && performance.timing && performance.timing.loadEventEnd) {
-    timer = setTimeout(() => {
+  if (performance && performance.timing) {
+    return timer = setTimeout(() => {
       post(url, getMetrics(performance.timing.loadEventEnd))
     }, 3000);
-    return
   }
 
   window.onload = () => {
     const time = (new Date()).getTime();
-    timer = setTimeout(() => {
+    return timer = setTimeout(() => {
       post(url, getMetrics(time));
-    })
+    }, 3000)
   }
 }

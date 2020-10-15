@@ -2,7 +2,7 @@
 
 ## Usage
 
-* Install the library with `npm install perfixin`
+* Install the library with `npm install --save perfixin`
 * Inside your main javascript file
 
 ```javascript

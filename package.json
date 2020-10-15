@@ -1,8 +1,8 @@
 {
-  "name": "@halilcakar/perfixin",
-  "version": "0.0.1",
+  "name": "perfixin",
+  "version": "0.0.2",
   "description": "A small JS library that collects performance data.",
-  "main": "dist/perfixin.js",
+  "main": "src/index.js",
   "scripts": {
     "build": "rollup -c"
   },
