@@ -1,5 +1,5 @@
 {
-  "name": "perfixin",
+  "name": "@halilcakar/perfixin",
   "version": "0.0.1",
   "description": "A small JS library that collects performance data.",
   "main": "dist/perfixin.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/halilcakar/perfixin.git"
+    "url": "git+https://github.com/halilcakar/perfixin-js.git"
   },
   "keywords": [
     "performance",
@@ -17,9 +17,9 @@
   "author": "Halil Çakar",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/halilcakar/perfixin/issues"
+    "url": "https://github.com/halilcakar/perfixin-js/issues"
   },
-  "homepage": "https://github.com/halilcakar/perfixin#readme",
+  "homepage": "https://github.com/halilcakar/perfixin-js#readme",
   "devDependencies": {
     "rollup": "2.30.0",
     "rollup-plugin-terser": "7.0.2"
