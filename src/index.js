@@ -43,31 +43,35 @@ const getMetrics = (time) => ({
   script: asset("js"),
   css: asset("css"),
   font: asset('woff') + asset('woff2'),
+  url: location.href,
+  origin: location.origin,
 })
 
-const post = (url, data) => {
-  if (!url) {
+const post = (config, data) => {
+  if (config.debug) {
     console.log('Perfixin debugging..');
     return console.log(data);
   }
+  let { url } = config;
+  if (!url) { url = '/perfixin/create'; }
   
   fetch(url, {
     method: "POST",
     cache: "no-cache",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
-  });
+  })
+    .then(response => response.json())
+    .then(console.log);
   clearTimeout(timer)
 }
 
 /**
  * @function Perfixin
  * 
- * @param url - when not provided, we will just console the metrics that we found.
+ * @param config { url: string, debug: boolean }
  */
-export default (url) => {
+export default (config) => {
   if (!window) {
     throw new Error('Cannot get metrics without window =)')
   }
@@ -77,14 +81,14 @@ export default (url) => {
 
   if (performance && performance.timing) {
     return timer = setTimeout(() => {
-      post(url, getMetrics(performance.timing.loadEventEnd))
-    }, 3000);
+      post(config, getMetrics(performance.timing.loadEventEnd))
+    }, 3000)
   }
 
   window.onload = () => {
     const time = (new Date()).getTime();
     return timer = setTimeout(() => {
-      post(url, getMetrics(time));
+      post(config, getMetrics(time))
     }, 3000)
   }
 }
